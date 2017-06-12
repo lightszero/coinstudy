@@ -82,28 +82,59 @@ namespace cptool
 
                         if (pinfo[x].sell * 1.01 < pinfo[y].buy)
                         {
-                            var key = pinfo.GetDesc() + ":"+ps[x] +"->"+ ps[y];
-                            chance[key] = "机会";
+
+                            var key = pinfo.GetDesc() + ":" + ps[x] + "->" + ps[y];
+                            var pb = pinfo[y].buy;
+                            var pa = pinfo[x].sell * 1.01;
+                            if (pa == 0) continue;
+                            var seed = (pb - pa) / pa * 100.0;
+                            chance[key] = "机会 " + seed.ToString("0.##") + "% " + pa.ToString("0.####") + "->" + pb.ToString("0.####");
                         }
                         else if (pinfo[x].buy > pinfo[y].sell * 1.01)
                         {
-                            var key = pinfo.GetDesc() +":"+ps[y]+"->" + ps[x];
-                            chance[key] = "机会";
+                            var key = pinfo.GetDesc() + ":" + ps[y] + "->" + ps[x];
+                            var pb = pinfo[x].buy;
+                            var pa = pinfo[y].sell * 1.01;
+                            if (pa == 0) continue;
+                            var seed = (pb - pa) / pa * 100.0;
+                            chance[key] = "机会 " + seed.ToString("0.##") + "% " + pa.ToString("0.####") + "->" + pb.ToString("0.####");
                         }
                     }
                 }
 
             }
 
-            while (listBox1.Items.Count < chance.Keys.Count)
-            {
-                listBox1.Items.Add("");
-            }
+
+            //整理
             var list = new List<string>(chance.Keys);
+            var listout = new List<string>(chance.Keys);
             for (var i = 0; i < chance.Keys.Count; i++)
             {
                 var ckey = list[i];
-                listBox1.Items[i] = ckey + ":" + chance[ckey];
+                if (chance[ckey] == "-")
+                {
+                    listout[i] = "-" + ckey + ":" + chance[ckey];
+                }
+                else
+                {
+                    listout[i] = " " + ckey + ":" + chance[ckey];
+                }
+            }
+            listout.Sort();
+            //输出
+            while (listBox1.Items.Count < listout.Count)
+            {
+                listBox1.Items.Add("");
+            }
+            while (listBox1.Items.Count > listout.Count)
+            {
+                listBox1.Items.RemoveAt(0);
+            }
+
+            for (var i = 0; i < listout.Count; i++)
+            {
+
+                listBox1.Items[i] = listout[i];
             }
         }
     }
