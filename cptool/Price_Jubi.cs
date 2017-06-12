@@ -51,6 +51,7 @@ namespace cptool
     }
     public interface IPrice
     {
+        void Init(List<string> usei);
         string[] GetKeys();
         Info GetInfo(string key);
     }
@@ -392,6 +393,89 @@ namespace cptool
 
         }
 
+    }
+    public class InfoPack:List<Info>
+    {
+        public InfoPack(int count)
+        {
+            for(var i=0;i<count;i++)
+            {
+                this.Add(null);
+            }
+        }
+        public string GetDesc()
+        {
+            for(var i=0;i<this.Count;i++)
+            {
+                if (this[i] != null)
+                    return this[i].desc;
+            }
+            return null;
+        }
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+    public class PriceTool
+    {
+        Dictionary<string, IPrice> prices = new Dictionary<string, IPrice>();
+        Dictionary<string, int> cnt = new Dictionary<string, int>();
+        public void Init()
+        {
+            prices["元宝"] = new Price_yuanbao();
+            prices["聚币"] = new Price_Jubi();
+            prices["19800"] = new Price_19800();
+            foreach (var p in prices.Values)
+            {
+                foreach (var k in p.GetKeys())
+                {
+                    if (cnt.ContainsKey(k)) cnt[k]++;
+                    else
+                        cnt[k] = 1;
+                }
+            }
+
+            var vs = new List<string>(cnt.Keys);
+            foreach (var v in vs)
+            {
+                if (cnt[v] < 2)
+                    cnt.Remove(v);
+            }
+            int i = 0;
+            vs = new List<string>(cnt.Keys);
+            foreach (var k in vs)
+            {
+                cnt[k] = i;
+                i++;
+            }
+            foreach (var p in prices.Values)
+            {
+                p.Init(vs);
+            }
+        }
+        public string[] GetKeys()
+        {
+            return cnt.Keys.ToArray();
+        }
+        public string[] GetPrices()
+        {
+            return prices.Keys.ToArray();
+        }
+        public Info GetInfo(string price,string key)
+        {
+            return prices[price].GetInfo(key);
+        }
+        public InfoPack GetInfos(string key)
+        {
+            var p = GetPrices();
+            InfoPack iss = new InfoPack(p.Length);
+            for(var i=0;i<iss.Count;i++)
+            {
+                iss[i] = prices[p[i]].GetInfo(key);
+            }
+            return iss;
+        }
     }
 
 }

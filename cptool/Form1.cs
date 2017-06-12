@@ -15,91 +15,95 @@ namespace cptool
         {
             InitializeComponent();
         }
-        Price_Jubi p = new Price_Jubi();
-        Price_19800 p2 = new Price_19800();
-        Price_yuanbao p3 = new Price_yuanbao();
+        PriceTool ptool = new PriceTool();
         private void Form1_Load(object sender, EventArgs e)
         {
-            Dictionary<string, int> cnt = new Dictionary<string, int>();
-            foreach(var k in p.GetKeys())
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            this.dataGridView1.AllowUserToOrderColumns = false;
+            this.dataGridView1.EditMode = DataGridViewEditMode.EditProgrammatically;
+            ptool.Init();
+
+            var keys = ptool.GetKeys();
+            this.dataGridView1.Columns.Add("name", "name");
+            var ps = ptool.GetPrices();
+            for (var i = 0; i < ptool.GetPrices().Length; i++)
             {
-                if (cnt.ContainsKey(k)) cnt[k]++;
-                else
-                    cnt[k] = 1;
+                var pkey = "price" + (i).ToString();
+                this.dataGridView1.Columns.Add(pkey, "price" + ps[i]);
+                this.dataGridView1.Columns[pkey].Width = 150;
+                this.dataGridView1.Columns.Add("vol" + (i).ToString(), "vol" + ps[i]);
             }
-            foreach (var k in p2.GetKeys())
+            for (var i = 0; i < keys.Length; i++)
             {
-                if (cnt.ContainsKey(k)) cnt[k]++;
-                else
-                    cnt[k] = 1;
+                this.dataGridView1.Rows.Add();
+                this.dataGridView1.Rows[i].Cells[0].Value = ptool.GetInfos(keys[i]).GetDesc() + keys[i];
             }
-            foreach (var k in p3.GetKeys())
-            {
-                if (cnt.ContainsKey(k)) cnt[k]++;
-                else
-                    cnt[k] = 1;
-            }
-            var vs = new List<string>(cnt.Keys);
-            foreach(var v in vs)
-            {
-                if (cnt[v] < 2)
-                    cnt.Remove(v);
-            }
-            int i = 0;
-            vs = new List<string>(cnt.Keys);
-            foreach (var k in vs)
-            {
-                cnt[k] = i;
-                i++;
-            }
-            p.Init(vs);
-            p2.Init(vs);
-            p3.Init(vs);
         }
+        class changeInfo
+        {
+
+        }
+        Dictionary<string, string> chance = new Dictionary<string, string>();
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            var keys = p.GetKeys();
-            while (this.listBox1.Items.Count < keys.Length)
+            var keys = ptool.GetKeys();
+
+            foreach (var k in new List<string>(chance.Keys))
             {
-                this.listBox1.Items.Add("");
-            }
-            var keys2 = p2.GetKeys();
-            while (this.listBox2.Items.Count < keys2.Length)
-            {
-                this.listBox2.Items.Add("");
-            }
-            var keys3 = p3.GetKeys();
-            while (this.listBox3.Items.Count < keys3.Length)
-            {
-                this.listBox3.Items.Add("");
+                chance[k] = "-";
             }
 
             for (var i = 0; i < keys.Length; i++)
             {
-                var pi = p.GetInfo(keys[i]);
+                var ps = ptool.GetPrices();
+                var pinfo = ptool.GetInfos(keys[i]);
+                for (var j = 0; j < ps.Length; j++)
+                {
+                    var pi = pinfo[j];
+                    if (pi == null) continue;
+                    var key = "price" + j;
+                    this.dataGridView1.Rows[i].Cells[key].Value = pi.price + "(" + pi.buy + "/" + pi.sell + ")";
 
-                if (pi == null) continue;
-                if (pi.change)
-                    this.listBox1.Items[i] = pi.ToString();
+                    var keyv = "vol" + j;
+                    this.dataGridView1.Rows[i].Cells[keyv].Value = pi.vol;
+                }
+                //差价发现
+
+                for (var x = 0; x < ps.Length; x++)
+                {
+                    for (var y = x + 1; y < ps.Length; y++)
+                    {
+                        if (x == y) continue;
+
+                        if (pinfo[x] == null || pinfo[y] == null) continue;
+
+
+                        if (pinfo[x].sell * 1.01 < pinfo[y].buy)
+                        {
+                            var key = pinfo.GetDesc() + ":"+ps[x] +"->"+ ps[y];
+                            chance[key] = "机会";
+                        }
+                        else if (pinfo[x].buy > pinfo[y].sell * 1.01)
+                        {
+                            var key = pinfo.GetDesc() +":"+ps[y]+"->" + ps[x];
+                            chance[key] = "机会";
+                        }
+                    }
+                }
+
             }
 
-            for (var i = 0; i < keys2.Length; i++)
+            while (listBox1.Items.Count < chance.Keys.Count)
             {
-                var pi = p2.GetInfo(keys2[i]);
-
-                if (pi == null) continue;
-                if (pi.change)
-                    this.listBox2.Items[i] = pi.ToString();
+                listBox1.Items.Add("");
             }
-
-            for (var i = 0; i < keys3.Length; i++)
+            var list = new List<string>(chance.Keys);
+            for (var i = 0; i < chance.Keys.Count; i++)
             {
-                var pi = p3.GetInfo(keys3[i]);
-
-                if (pi == null) continue;
-                if (pi.change)
-                    this.listBox3.Items[i] = pi.ToString();
+                var ckey = list[i];
+                listBox1.Items[i] = ckey + ":" + chance[ckey];
             }
         }
     }
