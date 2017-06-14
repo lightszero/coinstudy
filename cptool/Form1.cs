@@ -137,5 +137,10 @@ namespace cptool
                 listBox1.Items[i] = listout[i];
             }
         }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Application.ExitThread();
+        }
     }
 }
