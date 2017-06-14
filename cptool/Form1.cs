@@ -82,13 +82,21 @@ namespace cptool
 
                         if (pinfo[x].sell * 1.01 < pinfo[y].buy)
                         {
-
                             var key = pinfo.GetDesc() + ":" + ps[x] + "->" + ps[y];
                             var pb = pinfo[y].buy;
                             var pa = pinfo[x].sell * 1.01;
                             if (pa == 0) continue;
                             var seed = (pb - pa) / pa * 100.0;
                             chance[key] = "机会 " + seed.ToString("0.##") + "% " + pa.ToString("0.####") + "->" + pb.ToString("0.####");
+                        }
+                        else if (pinfo[x].sell * 1.00 < pinfo[y].buy)
+                        {
+                            var key = pinfo.GetDesc() + ":" + ps[x] + "->" + ps[y];
+                            var pb = pinfo[y].buy;
+                            var pa = pinfo[x].sell * 1.01;
+                            if (pa == 0) continue;
+                            var seed = (pb - pa) / pa * 100.0;
+                            chance[key] = "---- " + seed.ToString("0.##") + "% " + pa.ToString("0.####") + "->" + pb.ToString("0.####");
                         }
                         else if (pinfo[x].buy > pinfo[y].sell * 1.01)
                         {
@@ -98,6 +106,15 @@ namespace cptool
                             if (pa == 0) continue;
                             var seed = (pb - pa) / pa * 100.0;
                             chance[key] = "机会 " + seed.ToString("0.##") + "% " + pa.ToString("0.####") + "->" + pb.ToString("0.####");
+                        }
+                        else if (pinfo[x].buy > pinfo[y].sell * 1.00)
+                        {
+                            var key = pinfo.GetDesc() + ":" + ps[y] + "->" + ps[x];
+                            var pb = pinfo[x].buy;
+                            var pa = pinfo[y].sell * 1.01;
+                            if (pa == 0) continue;
+                            var seed = (pb - pa) / pa * 100.0;
+                            chance[key] = "---- " + seed.ToString("0.##") + "% " + pa.ToString("0.####") + "->" + pb.ToString("0.####");
                         }
                     }
                 }
@@ -114,6 +131,10 @@ namespace cptool
                 if (chance[ckey] == "-")
                 {
                     listout[i] = "-" + ckey + ":" + chance[ckey];
+                }
+                else if(chance[ckey][0]=='-')
+                {
+                    listout[i] = "=" + ckey + ":" + chance[ckey];
                 }
                 else
                 {
